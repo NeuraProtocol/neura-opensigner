@@ -188,7 +188,7 @@ services:
     networks:
       - db_network
     expose:
-      - "${DOCS_CONTAINER_:-4173}"
+      - "${DOCS_CONTAINER_PORT:-4173}"
     ports:
       - "${DOCS_HOST_PORT:-7055}:${DOCS_CONTAINER_PORT:-4173}"
     depends_on:
