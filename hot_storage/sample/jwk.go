@@ -44,11 +44,14 @@ func validate(token, jwkURL string) (string, error) {
 	}
 
 	parsed, err := jwt.Parse(token, k.Keyfunc, jwt.WithValidMethods([]string{"EdDSA", "RS256", "ES256"}))
-	if err != nil {
+	if err != nil || !parsed.Valid {
 		return "", errors.New("invalid token")
 	}
 
-	claims := parsed.Claims.(jwt.MapClaims)
+	claims, ok := parsed.Claims.(jwt.MapClaims)
+	if !ok {
+		return "", errors.New("invalid claims format")
+	}
 	sub, ok := claims["sub"].(string)
 	if !ok || sub == "" {
 		return "", errors.New("missing sub claim")

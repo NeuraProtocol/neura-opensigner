@@ -111,8 +111,18 @@ func getToken(r *http.Request) (string, error) {
 }
 
 func getTokenFromHeader(r *http.Request) (string, error) {
-	token := r.Header.Get(headerAuth)
-	token = strings.TrimPrefix(token, headerAuthPrefix)
+	authHeader := strings.TrimSpace(r.Header.Get(headerAuth))
+	if authHeader == "" {
+		return "", ErrMissingToken
+	}
+	prefix := strings.TrimSpace(headerAuthPrefix)
+	if strings.EqualFold(authHeader, prefix) {
+		return "", ErrMissingToken
+	}
+	if len(authHeader) < len(headerAuthPrefix) || !strings.EqualFold(authHeader[:len(headerAuthPrefix)], headerAuthPrefix) {
+		return "", ErrInvalidToken
+	}
+	token := strings.TrimSpace(authHeader[len(headerAuthPrefix):])
 	if token == "" {
 		return "", ErrMissingToken
 	}

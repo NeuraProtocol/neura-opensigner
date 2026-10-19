@@ -230,12 +230,17 @@ func handleListAccountsV2(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
+	end := 0
+	if len(accountsResponse) > 0 {
+		end = len(accountsResponse) - 1
+	}
+
 	resp := AccountListResponse{
 		Object: "list",
 		URL:    "/v2/accounts",
 		Data:   accountsResponse,
 		Start:  0,
-		End:    len(accountsResponse) - 1,
+		End:    end,
 		Total:  len(accountsResponse),
 	}
 
@@ -649,7 +654,7 @@ func handleGetDevices(w http.ResponseWriter, r *http.Request) {
 	case http.MethodPost:
 		handleCreateDevice(w, r)
 	default:
-		http.NotFound(w, r)
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 	}
 }
 
@@ -669,6 +674,20 @@ func handleListDevices(w http.ResponseWriter, r *http.Request) {
 	query := db.Where("username = ? AND auth_provider = ?", userId, authProvider)
 	if err := query.Limit(limit).Find(&accounts).Error; err != nil {
 		http.Error(w, "failed to select users' accounts", http.StatusInternalServerError)
+		return
+	}
+
+	if len(accounts) == 0 {
+		resp := DeviceListResponse{
+			Object: "list",
+			URL:    "/v1/devices",
+			Data:   []DeviceResponse{},
+			Start:  0,
+			End:    0,
+			Total:  0,
+		}
+		w.Header().Set(contentTypeHeader, contentTypeJSON)
+		json.NewEncoder(w).Encode(resp)
 		return
 	}
 
@@ -698,12 +717,17 @@ func handleListDevices(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	end := 0
+	if len(deviceResponses) > 0 {
+		end = len(deviceResponses) - 1
+	}
+
 	resp := DeviceListResponse{
 		Object: "list",
 		URL:    "/v1/devices",
 		Data:   deviceResponses,
 		Start:  0,
-		End:    len(deviceResponses) - 1,
+		End:    end,
 		Total:  len(deviceResponses),
 	}
 
